@@ -1,0 +1,7 @@
+Kernel parameters for a functioning brightness slider when using the dGPU mode:
+nvidia.NVreg_RegistryDwords=EnableBrightnessControl=1 acpi_backlight=native
+
+
+
+Kernel parameters for wake-up fix:
+mem_sleep_default=s2idle nvidia.NVreg_PreserveVideoMemoryAllocations=1 i8042.reset i8042.nomux i8042.nopnp i8042.noloop acpi_sleep=nonvs                 
