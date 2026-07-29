@@ -16,7 +16,7 @@ void serialNumber(); // Find the serial number of the laptop
 
 void chooseFunction();
  
-const char* version="0.1";
+const char* version="0.1.1";
 
 // Main function
 
