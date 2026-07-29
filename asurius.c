@@ -1,28 +1,22 @@
 // Made by xdeathstormer
 // https://github.com/xdeathstormer/asurius
 
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 
 // Intialise the required functions
-void dgpu(); // Switch to dGPU
-void igpu(); // Switch to iGPU
-void hybrid(); // Switch to Hybrid GPU [iGPU renders everything and the programs but the dGPU ]
+void optimusController(); //Function for controlling Nvidia optimus
 void performanceProfile(); // Switch performance profile [Requires PPD]
 void leds(); // Led brightness
 void refreshRate(); // Change the refresh rate [a secondary function]
-
+void mainBoard(); // Find the mainboard (using dmidecode)
+void serialNumber(); // Find the serial number of the laptop
 
 // Intitialise the function required to pick the function that is to be executed
 
 void chooseFunction();
-
-// 
-char* version="0.1";
-
+ 
+const char* version="0.1";
 
 // Main function
 
@@ -38,29 +32,31 @@ int main(){
 );
     printf("Version: %s\n", version);
     chooseFunction();
+    return 0;
 }
 
 
-// dGPU switching function
-void dgpu(){
-    system("supergfxctl -m AsusMuxDgpu");
-}
+// Deprecated functions
+//dGPU switching function
+//void dgpu(){
+//    system("supergfxctl -m AsusMuxDgpu");
+//}
 
 // iGPU switching function
 
-void igpu(){
-    system("supergfxctl -m Igpu");
-}
+//void igpu(){
+  //  system("supergfxctl -m Igpu");
+//}
 
 // Hybrid mode switching function
-void hybrid(){
-    system("supergfxctl -m Hybrid");
-}
+//void hybrid(){
+//    system("supergfxctl -m Hybrid");
+//}
 
-// Performance profile switching function
-void performanceProfile(){
-    system("asusctl profile set next");
-}
+// [Deprecated]Performance profile switching function
+// void performanceProfile(){
+    // system("asusctl profile set next"); Deprecated, use ./profile.sh [uses powerprofilesctl to do the same thing but faster]
+// }
 
 // Switch to the next LED brightness mode
 void leds(){
@@ -72,51 +68,96 @@ void refreshRate(){
     ;
 }
 
+// Find the mainboard
+
+void mainBoard(){
+    system("sudo dmidecode -s system-product-name | sed 's/.*_//'");
+}
+
 // Function picker
 
-void chooseFunction(){
 
-    char choice;
+void optimusController(){
+    
     char gpuMode[32];
     char command[100];
+
+    printf("Current GPU mode is: ");
+    fflush(stdout);
+    system("supergfxctl -g");
+
+    printf("\nSupported modes:\n");
+    system("supergfxctl -s");
+
+    printf("Choose a mode: ");
+    scanf("%31s", gpuMode);
+
+    snprintf(
+        command,
+        sizeof(command),
+        "supergfxctl -m %s",
+        gpuMode
+    );
+
+    system(command);
+}
+
+void serialNumber(){
+    system("sudo cat /sys/devices/virtual/dmi/id/product_serial");
+}
+
+
+void performanceProfile(){
+    system("./profile.sh");
+}
+
+// Function chooser
+void chooseFunction(){
+
+    int choice;
+    //Deprecated variables: gpuMode[32];
+    // Deprecated variables:  char command[100];
 
     printf("Choose a function: \n"
         
         "1. Change GPU mode \n"
         "2. Switch performance profile \n"
-        "3. Change led brightness \n"
-        "4. Change Battery limit \n "
+        "3. Change led brightness\n"
+        "4. Change Battery limit\n"
+        "5. Find laptop model\n"
+        "6. Find laptop serial number\n"
         ">>> ");
-    scanf("%c", &choice);
+    scanf("%d", &choice);
 
 
 
-    if (choice == '1'){
-        printf("Current gpu mode is ");
-        fflush(stdout);
-        system("supergfxctl -g");
-        printf("\n");
-        printf("Supported modes are:\n");
-        system("supergfxctl -s");
+
+    switch (choice) {
+        case 1:
+            optimusController();
+            break;
+
+        case 2:
+            performanceProfile();
+            break;
+
+        case 3:
+            leds();
+            break;
+
+        case 4:
+            printf("Battery limit switching is not implemented yet.\n");
+            break;
+
+        case 5:
+            mainBoard();
+            break;
         
-        printf("Choose a mode: ");
-        scanf("%s", &gpuMode);
-        snprintf(
-            command,
-            sizeof(command),
-            "supergfxctl -m %s",
-            gpuMode
-        );
-        system(command);
-    }
-
-    if( choice == '2'){
-        system("./profile.sh");
-    }
-    if (choice=='3'){
-        system("asusctl leds next");
-    }
-    if(choice=='4'){
-        printf("")
+        case 6:
+            serialNumber();
+            break;
+        default:
+            printf("Invalid choice.\n");
+            break;
     }
 }
